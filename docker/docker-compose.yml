@@ -125,6 +125,20 @@ services:
   #     - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka-1:49092,kafka-2:49093,kafka-3:49094
   #     - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper-1:22181
 
+   # Config Server
+  eureka-server:
+    build:
+      context: ../eureka
+      dockerfile: .Dockerfile
+    container_name: eureka-server
+    ports:
+      - 8761:8761
+    networks:
+      - msa-study-network
+    environment:
+      CONFIG_SERVER_USERNAME: "admin"
+      CONFIG_SERVER_PASSWORD: "1234"
+
   # Config Server
   config-server:
     build:
@@ -155,6 +169,7 @@ services:
       SPRING_PROFILES_ACTIVE: "dev" # 개발 환경 프로파일 활성화
       SPRING_CONFIG_IMPORT: "optional:configserver:http://admin:1234@config-server:10000"
       SPRING.DATASOURCE.URL: "jdbc:postgresql://db_postgres:5432/msa"
+      eureka.client.service-url.defaultZone: http://admin:1234@eureka-server:8761/eureka
       SPRING.DATASOURCE.USERNAME: "root"
       SPRING.DATASOURCE.PASSWORD: "1234"
 
@@ -174,6 +189,7 @@ services:
       SPRING_PROFILES_ACTIVE: "dev" # 개발 환경 프로파일 활성화
       SPRING_CONFIG_IMPORT: "optional:configserver:http://admin:1234@config-server:10000"
       SPRING.DATASOURCE.URL: "jdbc:postgresql://db_postgres:5432/msa"
+      eureka.client.service-url.defaultZone: http://admin:1234@eureka-server:8761/eureka
       SPRING.DATASOURCE.USERNAME: "root"
       SPRING.DATASOURCE.PASSWORD: "1234"
 
@@ -192,12 +208,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: "dev" # 개발 환경 프로파일 활성화
       SPRING_CONFIG_IMPORT: "optional:configserver:http://admin:1234@config-server:10000"
-
-
+      eureka.client.service-url.defaultZone: http://admin:1234@eureka-server:8761/eureka
       
-
-x-stack-name: msa-study
-
 networks:
   msa-study-network:
     
