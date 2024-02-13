@@ -13,6 +13,8 @@ services:
       POSTGRES_PASSWORD: 1234
     volumes:
       - ./volume/postgres/data:/var/lib/postgresql/data
+    networks:
+      - msa-study-network
   
   # Database 접속도구
   adminer:
@@ -21,6 +23,8 @@ services:
     container_name: db_postgres_adminer
     ports:
       - 5433:8080
+    networks:
+      - msa-study-network
 
   redis:
     image: redis:latest
@@ -35,6 +39,8 @@ services:
       - "mode=standalone"
     restart: always
     command: redis-server /usr/local/conf/redis.conf
+    networks:
+      - msa-study-network
 
   # FTP_vsftpd
   vsftpd:
@@ -130,22 +136,65 @@ services:
     networks:
       - msa-study-network
     environment:
-      SPRING_CONFIG_IMPORT: "optional:configserver:http://admin:1234@config-server:10000"
+      CONFIG_SERVER_USERNAME: "admin"
+      CONFIG_SERVER_PASSWORD: "1234"
 
-
-# Config Server
+# Auth Server
   auth-service:
     build:
       context: ../auth-service
       dockerfile: .Dockerfile
+    depends_on:
+      - config-server
     container_name: auth-service
     ports:
       - 50000:50000
     networks:
       - msa-study-network
     environment:
-      CONFIG_SERVER_USERNAME: "admin"
-      CONFIG_SERVER_PASSWORD: "1234"
+      SPRING_PROFILES_ACTIVE: "dev" # 개발 환경 프로파일 활성화
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://admin:1234@config-server:10000"
+      SPRING.DATASOURCE.URL: "jdbc:postgresql://db_postgres:5432/msa"
+      SPRING.DATASOURCE.USERNAME: "root"
+      SPRING.DATASOURCE.PASSWORD: "1234"
+
+# Forum Server
+  forum-service:
+    build:
+      context: ../forum-service
+      dockerfile: .Dockerfile
+    depends_on:
+      - config-server
+    container_name: forum-service
+    ports:
+      - 60000:60000
+    networks:
+      - msa-study-network
+    environment:
+      SPRING_PROFILES_ACTIVE: "dev" # 개발 환경 프로파일 활성화
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://admin:1234@config-server:10000"
+      SPRING.DATASOURCE.URL: "jdbc:postgresql://db_postgres:5432/msa"
+      SPRING.DATASOURCE.USERNAME: "root"
+      SPRING.DATASOURCE.PASSWORD: "1234"
+
+# File Server
+  file-service:
+    build:
+      context: ../file-service
+      dockerfile: .Dockerfile
+    depends_on:
+      - config-server
+    container_name: file-service
+    ports:
+      - 40000:40000
+    networks:
+      - msa-study-network
+    environment:
+      SPRING_PROFILES_ACTIVE: "dev" # 개발 환경 프로파일 활성화
+      SPRING_CONFIG_IMPORT: "optional:configserver:http://admin:1234@config-server:10000"
+
+
+      
 
 x-stack-name: msa-study
 
