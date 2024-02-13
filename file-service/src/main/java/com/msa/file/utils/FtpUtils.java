@@ -39,7 +39,8 @@ public class FtpUtils {
 
     private FTPClient ftp;
 
-    public void open() throws SocketException, IOException {
+    @SneakyThrows
+    public void open() {
         ftp = new FTPClient();
         ftp.setControlEncoding("UTF-8");
 
