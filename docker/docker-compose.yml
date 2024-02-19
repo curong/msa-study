@@ -153,6 +153,19 @@ services:
       CONFIG_SERVER_USERNAME: "admin"
       CONFIG_SERVER_PASSWORD: "1234"
 
+  # Gateway Server
+  gateway-server:
+    build:
+      context: ../gateway
+      dockerfile: .Dockerfile
+    container_name: gateway-server
+    ports:
+      - 8080:8080
+    networks:
+      - msa-study-network
+    environment:
+      eureka.client.service-url.defaultZone: http://admin:1234@eureka-server:8761/eureka
+
 # Auth Server
   auth-service:
     build:
@@ -209,6 +222,18 @@ services:
       SPRING_PROFILES_ACTIVE: "dev" # 개발 환경 프로파일 활성화
       SPRING_CONFIG_IMPORT: "optional:configserver:http://admin:1234@config-server:10000"
       eureka.client.service-url.defaultZone: http://admin:1234@eureka-server:8761/eureka
+
+  # React UI
+  react-ui:
+    build:
+      context: ../react
+      dockerfile: .Dockerfile
+    container_name: react-ui
+    ports:
+      - 5173:5173
+    networks:
+      - msa-study-network
+  
       
 networks:
   msa-study-network:
